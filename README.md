@@ -200,9 +200,26 @@ The configuration mode check passes when the file is owner-readable with no grou
 
 ## Security Model
 
+### Network-free runtime
+
+XRPL Node Preflight performs no external network requests.
+
+Runtime checks use only local Linux state, the supplied `xrpld.cfg`, and fixed local command-line probes.
+
+The `check` command does not contact:
+
+- XRP Ledger peers
+- XRPL RPC or WebSocket endpoints
+- GitHub
+- package repositories
+- public NTP servers
+- external port-scanning or bandwidth services
+
+Local probes such as `timedatectl`, `chronyc`, `systemctl` and `xrpld --version` may be executed, but they are not used to contact remote services.
+
 The supplied configuration is untrusted local input: it is read with a size bound, validated as UTF-8, and parsed without shell interpolation, include processing, environment substitution or any external lookup. No value in it ever selects an executable.
 
-The four programs this tool may run are fixed in source — `timedatectl`, `chronyc`, `systemctl` and `xrpld` — always without a shell, always with a timeout, and with their output bounded to 64 KiB and stripped of control characters before it reaches a report. Paths from the configuration or the command line are quoted, so nothing can inject a line or an escape sequence into the output.
+The four programs this tool may run are fixed in source - `timedatectl`, `chronyc`, `systemctl` and `xrpld` - always without a shell, always with a timeout, and with their output bounded to 64 KiB and stripped of control characters before it reaches a report. Paths from the configuration or the command line are quoted, so nothing can inject a line or an escape sequence into the output.
 
 Nothing is modified: no configuration, permission, unit, limit, firewall rule or package. No validator key or token is generated, read or reported. See [SECURITY.md](SECURITY.md).
 
