@@ -74,3 +74,26 @@ Reports never carry a hostname, machine ID, user name, home directory, IP addres
 ## Vulnerability Reporting
 
 Please report vulnerabilities privately through GitHub's **Report a vulnerability** option on this repository rather than in a public issue, with the affected component and steps to reproduce.
+
+
+
+## Untrusted xrpld configuration
+
+A supplied `xrpld.cfg` is treated as untrusted local input.
+
+The configuration reader therefore:
+
+- accepts at most 1 MiB of configuration data
+- requires valid UTF-8
+- performs no code execution
+- performs no shell interpolation
+- processes no include directives
+- performs no environment-variable substitution
+- performs no automatic external lookup
+- extracts only facts required by implemented checks
+
+Validator credentials require additional care.
+
+The source configuration bytes necessarily contain any configured validator secrets while the file is being parsed. XRPL Node Preflight does not copy those secret values into its parsed fact model, report model, ordinary errors or output.
+
+Only the presence of validator credentials is retained. Token or validation-seed contents, lengths, prefixes and hashes are not reported.
