@@ -90,6 +90,35 @@ There is no timestamp, duration or identifier in the report, no map iteration de
 
 Every operation is read-only. Configuration input is untrusted and bounded; secrets stay inside the parsing buffer; child output and paths are sanitized before they are rendered; no executable is selected by input; and no code path performs a network request.
 
+## Evaluation and report ordering
+Internal evaluation order and public report order are intentionally separate.
+When an xrpld.cfg file is supplied, configuration facts may be extracted before host probes because storage target selection can depend on the [node_db] path.
+
+The internal flow is:
+
+```bash
+parse CLI
+    ↓
+read optional xrpld.cfg
+    ↓
+collect local host facts
+    ↓
+resolve storage target
+    ↓
+evaluate checks
+    ↓
+construct checks in fixed public order
+    ↓
+derive overall result
+    ↓
+render text or JSON
+
+```
+
+The order in which facts are collected must not change the public ordering of checks.
+
+Stable ordering is part of the machine-readable report contract and keeps equivalent probe facts and CLI inputs deterministic.
+
 ## Non-Goals
 
 No installation, no remediation, no monitoring, no benchmarking, no remote hosts, no daemon, no HTTP server, no metrics, no database, no container images, and no live XRPL state.
