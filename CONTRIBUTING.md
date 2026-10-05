@@ -29,3 +29,23 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 ## Stable Check IDs
 
 Check identifiers are a machine-readable contract once released. Renaming one is a breaking change and needs a report-schema decision, not a quiet edit.
+
+## Adding a new check
+
+New checks should preserve the project's deterministic and read-only operating model.
+
+A new check should:
+
+- have a stable check ID
+- return only `PASS`, `WARN`, `FAIL` or `SKIP`
+- include automated tests
+- be documented in the README
+- avoid modifying the host or `xrpld.cfg`
+- avoid external runtime network requests
+- avoid shell execution
+- avoid exposing secrets or unnecessary host identity
+- use the Go standard library where practical
+
+Check IDs are part of the machine-readable public contract after v0.1.0 and should not be renamed casually.
+
+Changes that expand the supported scope should be discussed separately rather than being introduced as incidental additions to an existing check.
