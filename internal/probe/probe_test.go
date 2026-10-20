@@ -163,12 +163,46 @@ func TestRunCommandBoundsOutput(t *testing.T) {
 
 func TestRunCommandTimeout(t *testing.T) {
 	start := time.Now()
-	_, err := runCommand(context.Background(), 100*time.Millisecond, "sleep", "5")
+
+	_, err := runCommand(
+		context.Background(),
+		100*time.Millisecond,
+		"sleep",
+		"5",
+	)
+
 	if err == nil {
 		t.Fatal("runCommand() error = nil, want a timeout")
 	}
+
 	if elapsed := time.Since(start); elapsed > 3*time.Second {
 		t.Errorf("elapsed = %v, want the timeout to stop the child", elapsed)
+	}
+}
+
+func TestRunCommandTimeoutWithInheritedOutput(t *testing.T) {
+	if _, err := os.Stat("/bin/sh"); err != nil {
+		t.Skip("/bin/sh is unavailable")
+	}
+	start := time.Now()
+
+	_, err := runCommand(
+		context.Background(),
+		100*time.Millisecond,
+		"/bin/sh",
+		"-c",
+		"sleep 5 & echo ok",
+	)
+
+	if err == nil {
+		t.Fatal("runCommand() error = nil, want a timeout")
+	}
+
+	if elapsed := time.Since(start); elapsed > time.Second {
+		t.Errorf(
+			"elapsed = %v, want inherited output not to extend the timeout",
+			elapsed,
+		)
 	}
 }
 
