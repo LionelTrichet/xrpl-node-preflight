@@ -20,9 +20,8 @@ func runCommand(ctx context.Context, timeout time.Duration, name string, args ..
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	command := exec.CommandContext(ctx, name, args...)
-	// A predictable locale keeps the output parseable.
-	command.Env = append(command.Environ(), "LC_ALL=C")
+	command := exec.CommandContext(ctx, name, args...) command.WaitDelay = 100 * time.Millisecond
+	// A predictable locale keeps the output parseable.command.Env = append(command.Environ(), "LC_ALL=C")
 
 	output := newCappedWriter(maxCommandOutput)
 	command.Stdout = output
