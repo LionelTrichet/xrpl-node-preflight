@@ -2,29 +2,16 @@
 
 ## [Unreleased]
 
-## [0.1.0]
+### Fixed
 
-### Added
+- A command that leaves a background process holding its output no longer
+  keeps the check waiting past its timeout.
 
-- Linux host readiness checks for xrpld.
-- Production and minimum readiness profiles.
-- Node and validator roles.
-- Logical CPU and memory checks.
-- Storage capacity and non-rotational media detection.
-- Network interface and link-speed checks.
-- Local time-synchronization checks.
-- xrpld service file-descriptor checks with safe fallback.
-- xrpld binary/version detection.
-- Bounded secret-aware xrpld.cfg extraction.
-- [server] listener-default inheritance.
-- node_size and NodeDB checks.
-- Peer-listener validation.
-- Validator credential checks.
-- Legacy validation-seed warnings.
-- Validator configuration-mode checks.
-- Validator HTTP/WebSocket/gRPC bind review.
-- Deterministic text and JSON reports.
-- Network-free runtime.
+### Security
+
+- Built with Go 1.27.3. Go 1.27.1 carries standard library vulnerabilities
+  that are fixed in 1.27.2 and 1.27.3; govulncheck found none of them
+  reachable from this code.
 
 ## [0.1.0]
 
