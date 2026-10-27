@@ -255,7 +255,7 @@ The tool never contacts the XRP Ledger, a peer, an RPC server, a package reposit
 make check   # fmt-check, vet, test, test-race, vuln, build
 ```
 
-Go 1.27.1, no runtime dependencies, standard library only.
+Go 1.27.3, no runtime dependencies, standard library only.
 
 ## Testing
 

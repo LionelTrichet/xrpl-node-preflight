@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Go 1.27.1, the pinned toolchain.
+- Go 1.27.3, the pinned toolchain.
 - Everything must pass before a change is proposed:
 
 ```bash
