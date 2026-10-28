@@ -6,6 +6,9 @@
 
 - A command that leaves a background process holding its output no longer
   keeps the check waiting past its timeout.
+- `limits.nofile` now judges the soft file-descriptor limit of
+  `xrpld.service` (`LimitNOFILESoft`). A high hard limit with a low soft limit,
+  such as the systemd default of soft 1024 and hard 524288, no longer passes.
 
 ### Security
 

@@ -198,9 +198,9 @@ func (Linux) TimeSync(ctx context.Context) (TimeSyncInfo, error) {
 	return TimeSyncInfo{State: TimeUnknown, Source: ""}, nil
 }
 
-// Nofile reports the file-descriptor limits. The xrpld service limit is
-// authoritative when it can be read; the current process limit is only an
-// indication.
+// Nofile reports the file-descriptor limits. The soft limit of the xrpld
+// service is authoritative when it can be read; its hard limit is kept as
+// context, and the current process limit is only an indication.
 func (Linux) Nofile(ctx context.Context) (NofileInfo, error) {
 	info := NofileInfo{}
 
@@ -211,13 +211,13 @@ func (Linux) Nofile(ctx context.Context) (NofileInfo, error) {
 	}
 
 	output, err := runCommand(ctx, systemdTimeout, "systemctl", "show", "xrpld.service",
-		"--property=LoadState", "--property=LimitNOFILE", "--no-pager")
+		"--property=LoadState", "--property=LimitNOFILE", "--property=LimitNOFILESoft", "--no-pager")
 	if err != nil {
 		return info, nil
 	}
 
 	loaded := false
-	value := ""
+	hard, soft := "", ""
 	for _, line := range strings.Split(output, "\n") {
 		key, raw, found := strings.Cut(strings.TrimSpace(line), "=")
 		if !found {
@@ -227,24 +227,31 @@ func (Linux) Nofile(ctx context.Context) (NofileInfo, error) {
 		case "LoadState":
 			loaded = strings.EqualFold(strings.TrimSpace(raw), "loaded")
 		case "LimitNOFILE":
-			value = strings.TrimSpace(raw)
+			hard = strings.TrimSpace(raw)
+		case "LimitNOFILESoft":
+			soft = strings.TrimSpace(raw)
 		}
 	}
-	if !loaded || value == "" {
+	if !loaded {
 		return info, nil
 	}
 
+	info.ServiceHardLimit, info.ServiceHardInfinity, _ = parseLimit(hard)
+	info.ServiceSoftLimit, info.ServiceSoftInfinity, info.ServiceVerified = parseLimit(soft)
+	return info, nil
+}
+
+// parseLimit reads a systemd resource limit value: a number or infinity.
+func parseLimit(value string) (limit uint64, infinite, ok bool) {
 	switch strings.ToLower(value) {
 	case "infinity", "infinite":
-		info.ServiceVerified = true
-		info.ServiceInfinity = true
-		return info, nil
+		return 0, true, true
 	}
-	if parsed, err := strconv.ParseUint(value, 10, 64); err == nil {
-		info.ServiceVerified = true
-		info.ServiceLimit = parsed
+	parsed, err := strconv.ParseUint(value, 10, 64)
+	if err != nil {
+		return 0, false, false
 	}
-	return info, nil
+	return parsed, false, true
 }
 
 // XRPLDVersion looks for a local xrpld binary and asks it for its version. No

@@ -50,11 +50,16 @@ const (
 // authoritative; the current process limit only indicates.
 type NofileInfo struct {
 	// ServiceVerified is true when xrpld.service is loaded and its
-	// LimitNOFILE could be read.
+	// LimitNOFILESoft could be read.
 	ServiceVerified bool
-	ServiceLimit    uint64
-	// ServiceInfinity is true when the service limit is unlimited.
-	ServiceInfinity bool
+	// ServiceSoftLimit is the limit xrpld.service starts with. The hard
+	// limit is diagnostic context only.
+	ServiceSoftLimit uint64
+	ServiceHardLimit uint64
+	// ServiceSoftInfinity and ServiceHardInfinity are true when the
+	// corresponding service limit is unlimited.
+	ServiceSoftInfinity bool
+	ServiceHardInfinity bool
 	// ProcessLimit is the hard RLIMIT_NOFILE of this process.
 	ProcessLimit uint64
 	ProcessKnown bool

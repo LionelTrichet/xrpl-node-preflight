@@ -12,9 +12,11 @@ import (
 // asks for.
 const requiredNofile = 65536
 
-// nofileCheck judges the file-descriptor limit. Only a limit read from the
-// xrpld service is authoritative; the limit of this process says nothing
-// about the service and can never produce a failure.
+// nofileCheck judges the file-descriptor limit. Only the soft limit read from
+// the xrpld service is authoritative: xrpld starts with it and raises it only
+// to its own minimum estimate, so a high hard limit alone does not reach the
+// recommended value. The limit of this process says nothing about the service
+// and can never produce a failure.
 func nofileCheck(ctx context.Context, p probe.Probe, level string) model.Check {
 	expected := fmt.Sprintf(">= %d for xrpld.service", requiredNofile)
 
@@ -25,15 +27,15 @@ func nofileCheck(ctx context.Context, p probe.Probe, level string) model.Check {
 	}
 
 	if info.ServiceVerified {
-		if info.ServiceInfinity {
+		if info.ServiceSoftInfinity {
 			return check("limits.nofile", model.StatusPass,
-				"xrpld.service LimitNOFILE is unlimited", "infinity", expected)
+				"xrpld.service soft LimitNOFILE is unlimited", "infinity", expected)
 		}
 
-		observed := fmt.Sprintf("%d", info.ServiceLimit)
-		if info.ServiceLimit >= requiredNofile {
+		observed := fmt.Sprintf("%d", info.ServiceSoftLimit)
+		if info.ServiceSoftLimit >= requiredNofile {
 			return check("limits.nofile", model.StatusPass,
-				fmt.Sprintf("xrpld.service LimitNOFILE is %d", info.ServiceLimit), observed, expected)
+				fmt.Sprintf("xrpld.service soft LimitNOFILE is %d", info.ServiceSoftLimit), observed, expected)
 		}
 
 		status := model.StatusFail
@@ -41,7 +43,7 @@ func nofileCheck(ctx context.Context, p probe.Probe, level string) model.Check {
 			status = model.StatusWarn
 		}
 		return check("limits.nofile", status,
-			fmt.Sprintf("xrpld.service LimitNOFILE is %d, below %d", info.ServiceLimit, requiredNofile),
+			fmt.Sprintf("xrpld.service soft LimitNOFILE is %d, below %d", info.ServiceSoftLimit, requiredNofile),
 			observed, expected)
 	}
 

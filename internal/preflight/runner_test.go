@@ -53,7 +53,7 @@ func newFakeProbe() *fakeProbe {
 			"eth0": {Name: "eth0", OperState: "up", SpeedMbit: 1000},
 		},
 		timeSync: probe.TimeSyncInfo{State: probe.TimeSynchronized, Source: "timedatectl"},
-		nofile:   probe.NofileInfo{ServiceVerified: true, ServiceLimit: 65536},
+		nofile:   probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 65536, ServiceHardLimit: 65536},
 		binary:   probe.BinaryInfo{Found: true, Path: "/usr/bin/xrpld", VersionOK: true, Version: "rippled version 2.6.1"},
 	}
 }
@@ -390,10 +390,14 @@ func TestNofileChecks(t *testing.T) {
 		status model.Status
 		want   string
 	}{
-		{"service at the threshold", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceLimit: 65536}, nil, model.StatusPass, "65536"},
-		{"service below", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceLimit: 1024}, nil, model.StatusFail, "1024"},
-		{"minimum service below", LevelMinimum, probe.NofileInfo{ServiceVerified: true, ServiceLimit: 1024}, nil, model.StatusWarn, "1024"},
-		{"service infinity", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceInfinity: true}, nil, model.StatusPass, "unlimited"},
+		{"service at the threshold", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 65536, ServiceHardLimit: 65536}, nil, model.StatusPass, "65536"},
+		{"service below", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 1024, ServiceHardLimit: 1024}, nil, model.StatusFail, "1024"},
+		{"minimum service below", LevelMinimum, probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 1024, ServiceHardLimit: 1024}, nil, model.StatusWarn, "1024"},
+		{"high hard low soft", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 1024, ServiceHardLimit: 524288}, nil, model.StatusFail, "soft LimitNOFILE is 1024, below 65536"},
+		{"minimum high hard low soft", LevelMinimum, probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 1024, ServiceHardLimit: 524288}, nil, model.StatusWarn, "soft LimitNOFILE is 1024, below 65536"},
+		{"soft at the threshold with higher hard", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 65536, ServiceHardLimit: 524288}, nil, model.StatusPass, "soft LimitNOFILE is 65536"},
+		{"service infinity", LevelProduction, probe.NofileInfo{ServiceVerified: true, ServiceSoftInfinity: true, ServiceHardInfinity: true}, nil, model.StatusPass, "unlimited"},
+		{"soft unknown hard high", LevelProduction, probe.NofileInfo{ServiceVerified: false, ServiceHardLimit: 524288}, nil, model.StatusWarn, "could not be verified"},
 		{"process limit high", LevelProduction, probe.NofileInfo{ProcessKnown: true, ProcessLimit: 1048576}, nil, model.StatusWarn, "could not be verified"},
 		{"process limit low", LevelProduction, probe.NofileInfo{ProcessKnown: true, ProcessLimit: 1024}, nil, model.StatusWarn, "could not be verified"},
 		{"nothing known", LevelProduction, probe.NofileInfo{}, nil, model.StatusWarn, "could not be verified"},

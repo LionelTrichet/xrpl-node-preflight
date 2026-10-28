@@ -85,7 +85,7 @@ Exit codes: `0` when the report contains no failure, `1` when at least one check
 
 `--role node` (default) runs the host and configuration checks. `--role validator` adds the five validator checks.
 
-`--level production` (default) applies the recommended profile: amd64, at least 8 logical CPUs, at least 64 GiB of memory, at least 50 GB of total filesystem capacity, non-rotational media, a gigabit link, synchronized time and an `xrpld.service` file-descriptor limit of at least 65536.
+`--level production` (default) applies the recommended profile: amd64, at least 8 logical CPUs, at least 64 GiB of memory, at least 50 GB of total filesystem capacity, non-rotational media, a gigabit link, synchronized time and an `xrpld.service` soft file-descriptor limit of at least 65536.
 
 `--level minimum` applies the lower profile: at least 4 logical CPUs and 16 GiB of memory, with the same storage requirements; arm64, a slower link, unsynchronized time and a low verified service limit become warnings instead of failures. This profile is not a Mainnet production certification: XRPL's lower specifications are not sufficient for reliably staying synchronized with Mainnet.
 
@@ -104,7 +104,7 @@ Checks always appear in this order, and the identifiers are part of the machine-
 | `storage.media` | whether the kernel reports non-rotational media |
 | `network.interface` | link state and speed of the selected interface |
 | `time.sync` | local synchronization state |
-| `limits.nofile` | `xrpld.service` LimitNOFILE, or the process limit as an indication |
+| `limits.nofile` | `xrpld.service` soft limit (`LimitNOFILESoft`), or the process limit as an indication |
 | `xrpld.binary` | whether `xrpld` is installed and what version it reports |
 | `config.file` | whether the supplied configuration could be read |
 | `config.node_size` | the configured node size |
@@ -124,7 +124,7 @@ The storage target is chosen in a fixed order: `--data-dir`, then the `[node_db]
 
 **The 50 GB check uses total filesystem capacity. Available space is reported separately, and operators remain responsible for provisioning sufficient headroom for their selected ledger-history retention policy.**
 
-**A systemd `xrpld.service` LimitNOFILE value can be evaluated directly. When that service-specific limit is unavailable, the current preflight process limit is shown only as an indication and produces a warning rather than a service-level failure.**
+**The soft file-descriptor limit of a systemd `xrpld.service` (`LimitNOFILESoft`) can be evaluated directly; a high hard `LimitNOFILE` does not make up for a low soft limit. When that service-specific limit is unavailable, the current preflight process limit is shown only as an indication and produces a warning rather than a service-level failure.**
 
 ## Text Output
 

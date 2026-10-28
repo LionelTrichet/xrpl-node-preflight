@@ -63,7 +63,7 @@ func (f *fakeProbe) TimeSync(context.Context) (probe.TimeSyncInfo, error) {
 }
 
 func (f *fakeProbe) Nofile(context.Context) (probe.NofileInfo, error) {
-	return probe.NofileInfo{ServiceVerified: true, ServiceLimit: 65536}, nil
+	return probe.NofileInfo{ServiceVerified: true, ServiceSoftLimit: 65536, ServiceHardLimit: 65536}, nil
 }
 
 func (f *fakeProbe) XRPLDVersion(context.Context) (probe.BinaryInfo, error) {
